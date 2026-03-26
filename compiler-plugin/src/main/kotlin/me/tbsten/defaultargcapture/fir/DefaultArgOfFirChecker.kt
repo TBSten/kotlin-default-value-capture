@@ -50,7 +50,7 @@ import org.jetbrains.kotlin.name.FqName
  * reports the equivalent error as a fallback.
  */
 class DefaultArgOfFirChecker(private val session: FirSession) :
-    FirExpressionChecker<FirFunctionCall>(MppCheckerKind.Common) {
+    FirExpressionChecker<FirFunctionCall>(MppCheckerKind.Platform) {
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     override fun check(expression: FirFunctionCall) {
