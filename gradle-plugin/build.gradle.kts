@@ -25,7 +25,7 @@ gradlePlugin {
     plugins {
         create("defaultArgOf") {
             id = "me.tbsten.defaultargcapture"
-            implementationClass = "com.example.gradleplugin.DefaultArgOfGradlePlugin"
+            implementationClass = "me.tbsten.defaultargcapture.gradle.DefaultArgOfGradlePlugin"
         }
     }
 }

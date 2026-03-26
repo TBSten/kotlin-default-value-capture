@@ -1,4 +1,4 @@
-package com.example.plugin
+package me.tbsten.defaultargcapture
 
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -47,7 +47,7 @@ class DefaultArgOfTransformer(
 
     private val defaultArgOfSymbols by lazy {
         context.referenceFunctions(
-            CallableId(FqName("com.example.plugin.runtime"), Name.identifier("defaultArgOf"))
+            CallableId(FqName("me.tbsten.defaultargcapture.runtime"), Name.identifier("defaultArgOf"))
         ).toSet()
     }
 

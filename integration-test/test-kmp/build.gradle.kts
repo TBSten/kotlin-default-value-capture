@@ -9,5 +9,5 @@ dependencies {
 }
 
 application {
-    mainClass = "com.example.testapp.MainKt"
+    mainClass = "me.tbsten.defaultargcapture.testapp.MainKt"
 }

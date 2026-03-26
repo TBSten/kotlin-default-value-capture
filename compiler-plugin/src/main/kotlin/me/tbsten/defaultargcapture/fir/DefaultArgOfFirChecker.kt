@@ -1,4 +1,4 @@
-package com.example.plugin.fir
+package me.tbsten.defaultargcapture.fir
 
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.reportOn

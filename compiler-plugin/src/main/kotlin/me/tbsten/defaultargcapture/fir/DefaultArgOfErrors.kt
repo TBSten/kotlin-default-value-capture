@@ -1,4 +1,4 @@
-package com.example.plugin.fir
+package me.tbsten.defaultargcapture.fir
 
 import org.jetbrains.kotlin.diagnostics.KtDiagnosticFactory1
 import org.jetbrains.kotlin.diagnostics.KtDiagnosticFactoryToRendererMap

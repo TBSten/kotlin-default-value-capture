@@ -1,4 +1,4 @@
-package com.example.plugin
+package me.tbsten.defaultargcapture
 
 import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation
@@ -42,7 +42,7 @@ class DefaultArgOfTransformerTest : FunSpec({
             // language=kotlin
             """
             package com.example.test
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String = "hello") {}
             val v = defaultArgOf<String>(funName = "com.example.test.target", argName = "x")
             """.trimIndent()
@@ -57,7 +57,7 @@ class DefaultArgOfTransformerTest : FunSpec({
             // language=kotlin
             """
             package com.example.test
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String = 123.toString()) {}
             val v = defaultArgOf<String>(funName = "com.example.test.target", argName = "x")
             """.trimIndent()
@@ -71,7 +71,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             val v = defaultArgOf<String>(funName = "com.example.notExist", argName = "x")
             """.trimIndent()
         )
@@ -85,7 +85,7 @@ class DefaultArgOfTransformerTest : FunSpec({
             // language=kotlin
             """
             package com.example.test
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String = "hi") {}
             val v = defaultArgOf<String>(funName = "com.example.test.target", argName = "notExist")
             """.trimIndent()
@@ -99,7 +99,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String = "hi") {}
             val name = "com.example.target"
             val v = defaultArgOf<String>(funName = name, argName = "x")
@@ -114,7 +114,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String = "hi") {}
             val v = defaultArgOf<String>(funName = "target", argName = "x")
             """.trimIndent()
@@ -130,7 +130,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String = "hello") {}
             val v = defaultArgOf<String>(::target, "x")
             """.trimIndent()
@@ -144,7 +144,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String = 123.toString()) {}
             val v = defaultArgOf<String>(::target, "x")
             """.trimIndent()
@@ -158,7 +158,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String = "hi") {}
             val v = defaultArgOf<String>(::target, "notExist")
             """.trimIndent()
@@ -172,7 +172,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String) {}
             val v = defaultArgOf<String>(::target, "x")
             """.trimIndent()
@@ -188,7 +188,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             class MyClass {
                 fun myMethod(x: String = "member-default") {}
             }
@@ -204,7 +204,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun String.myExt(x: Int = 42) {}
             val v = defaultArgOf<Int>(String::myExt, "x")
             """.trimIndent()
@@ -218,7 +218,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             class MyClass {
                 fun myMethod(x: String = "hi") {}
             }
@@ -237,7 +237,7 @@ class DefaultArgOfTransformerTest : FunSpec({
             // language=kotlin
             """
             package com.example.test
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String = "fqn-default") {}
             val v = defaultArgOf<String>(funName = "com.example.test.target", argName = "x")
             """.trimIndent()
@@ -253,7 +253,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: Int = 42) {}
             val v = defaultArgOf<Int>(::target, "x")
             """.trimIndent()
@@ -267,7 +267,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(enabled: Boolean = true) {}
             val v = defaultArgOf<Boolean>(::target, "enabled")
             """.trimIndent()
@@ -281,7 +281,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(action: () -> String = { "lambda-result" }) {}
             val v = defaultArgOf<() -> String>(::target, "action")
             """.trimIndent()
@@ -297,7 +297,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(items: List<String> = listOf("a", "b")) {}
             val v = defaultArgOf<List<String>>(::target, "items")
             """.trimIndent()
@@ -311,7 +311,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String? = null) {}
             val v = defaultArgOf<String?>(::target, "x")
             """.trimIndent()
@@ -325,7 +325,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String = "inside-lambda") {}
             val v = run { defaultArgOf<String>(::target, "x") }
             """.trimIndent()
@@ -339,7 +339,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         val result = compile(
             // language=kotlin
             """
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(a: String = "first", b: Int = 99, c: Boolean = false) {}
             val va = defaultArgOf<String>(::target, "a")
             val vb = defaultArgOf<Int>(::target, "b")
@@ -362,7 +362,7 @@ class DefaultArgOfTransformerTest : FunSpec({
             // language=kotlin
             """
             package com.example.test
-            import com.example.plugin.runtime.defaultArgOf
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
             fun target(x: String) {}
             val v = defaultArgOf<String>(funName = "com.example.test.target", argName = "x")
             """.trimIndent()

@@ -1,4 +1,4 @@
-package com.example.plugin
+package me.tbsten.defaultargcapture
 
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment

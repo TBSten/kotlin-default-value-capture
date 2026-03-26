@@ -1,7 +1,7 @@
-package com.example.plugin
+package me.tbsten.defaultargcapture
 
 import com.google.auto.service.AutoService
-import com.example.plugin.fir.DefaultArgOfFirExtensionRegistrar
+import me.tbsten.defaultargcapture.fir.DefaultArgOfFirExtensionRegistrar
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
  */
 @AutoService(CompilerPluginRegistrar::class)
 class DefaultArgOfPluginRegistrar : CompilerPluginRegistrar() {
-    override val pluginId: String = "com.example.defaultarg"
+    override val pluginId: String = "me.tbsten.defaultargcapture"
     override val supportsK2: Boolean = true
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {

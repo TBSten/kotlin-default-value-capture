@@ -1,4 +1,4 @@
-package com.example.plugin
+package me.tbsten.defaultargcapture
 
 import com.google.auto.service.AutoService
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 /**
  * Command-line processor for the defaultArgOf compiler plugin.
  *
- * Declares the plugin ID (`com.example.defaultarg`) used by the Kotlin compiler
+ * Declares the plugin ID (`me.tbsten.defaultargcapture`) used by the Kotlin compiler
  * to match this plugin with its [registrar][DefaultArgOfPluginRegistrar].
  * Currently accepts no CLI options.
  *
@@ -22,6 +22,6 @@ import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
  */
 @AutoService(CommandLineProcessor::class)
 class DefaultArgOfCommandLineProcessor : CommandLineProcessor {
-    override val pluginId: String = "com.example.defaultarg"
+    override val pluginId: String = "me.tbsten.defaultargcapture"
     override val pluginOptions: Collection<AbstractCliOption> = emptyList()
 }

@@ -1,4 +1,4 @@
-package com.example.gradleplugin
+package me.tbsten.defaultargcapture.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
  * Apply this plugin in your `build.gradle.kts`:
  * ```kotlin
  * plugins {
- *     id("me.tbsten.defaultargcapture") version "0.1.0-alpha01"
+ *     id("me.tbsten.defaultargcapture") version "0.1.0-alpha02"
  * }
  * ```
  *
@@ -47,7 +47,7 @@ class DefaultArgOfGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
 
-    override fun getCompilerPluginId(): String = "com.example.defaultarg"
+    override fun getCompilerPluginId(): String = "me.tbsten.defaultargcapture"
 
     override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
         groupId = GROUP_ID,
@@ -62,6 +62,6 @@ class DefaultArgOfGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     companion object {
         private const val GROUP_ID = "me.tbsten.defaultargcapture"
-        private const val VERSION = "0.1.0-alpha01"
+        private const val VERSION = "0.1.0-alpha02"
     }
 }

@@ -1,4 +1,4 @@
-package com.example.plugin
+package me.tbsten.defaultargcapture
 
 /**
  * Exception thrown during `defaultArgOf` IR processing to signal a compile-time error.

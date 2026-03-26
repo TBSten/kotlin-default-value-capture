@@ -1,4 +1,4 @@
-package com.example.plugin.runtime
+package me.tbsten.defaultargcapture.runtime
 
 /**
  * Captures the default value of a function parameter at compile time.
