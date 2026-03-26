@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.util.dump
+import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.FqName
@@ -28,6 +28,18 @@ class DefaultArgOfTransformer(
         val symbol = defaultArgOfSymbol ?: return super.visitCall(expression)
         if (expression.symbol != symbol) return super.visitCall(expression)
 
+        return try {
+            replaceWithDefaultValue(expression)
+        } catch (e: DefaultArgOfPluginException) {
+            messageCollector.report(
+                CompilerMessageSeverity.ERROR,
+                e.message ?: "defaultArgOf plugin error",
+            )
+            super.visitCall(expression)
+        }
+    }
+
+    private fun replaceWithDefaultValue(expression: IrCall): IrExpression {
         val funName = expression.getStringArgOrThrow("funName")
         val argName = expression.getStringArgOrThrow("argName")
 
@@ -45,12 +57,7 @@ class DefaultArgOfTransformer(
                 "Parameter '$argName' in '$funName' has no default value."
             )
 
-        messageCollector.report(
-            CompilerMessageSeverity.WARNING,
-            "[DefaultArgOf] defaultValue IR:\n${defaultValue.expression.dump()}"
-        )
-
-        // TODO: IR 差し替え（task-008 で対応）
-        return super.visitCall(expression)
+        val copied = defaultValue.expression.deepCopyWithSymbols(targetFunction)
+        return copied.transform(this, null)
     }
 }

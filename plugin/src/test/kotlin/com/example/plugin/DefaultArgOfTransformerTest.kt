@@ -12,8 +12,9 @@ class DefaultArgOfTransformerTest : FunSpec({
     fun compile(source: String, dumpIr: Boolean = false): JvmCompilationResult =
         KotlinCompilation().apply {
             sources = listOf(SourceFile.kotlin("Source.kt", source))
-            // TODO: compilerPluginRegistrars に PluginRegistrar を追加（task-005 で対応）
+            compilerPluginRegistrars = listOf(DefaultArgOfPluginRegistrar())
             inheritClassPath = true
+            jvmTarget = "21"
             messageOutputStream = System.out
             if (dumpIr) kotlincArguments = listOf("-Xphases-to-dump-after=IrVerification")
         }.compile()
@@ -24,7 +25,7 @@ class DefaultArgOfTransformerTest : FunSpec({
             .also { it.isAccessible = true }
             .get(null)
 
-    xtest("文字列リテラルのデフォルト値が展開される") {
+    test("文字列リテラルのデフォルト値が展開される") {
         val result = compile(
             """
             import com.example.plugin.runtime.defaultArgOf
@@ -33,11 +34,13 @@ class DefaultArgOfTransformerTest : FunSpec({
             """.trimIndent()
         )
 
-        result.exitCode shouldBe KotlinCompilation.ExitCode.OK
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
         result.loadTopLevelField("v") shouldBe "hello"
     }
 
-    xtest("式形式のデフォルト値（123.toString()）が展開される") {
+    test("式形式のデフォルト値（123.toString()）が展開される") {
         val result = compile(
             """
             import com.example.plugin.runtime.defaultArgOf
@@ -50,7 +53,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         result.loadTopLevelField("v") shouldBe "123"
     }
 
-    xtest("存在しない関数名はコンパイルエラーになる") {
+    test("存在しない関数名はコンパイルエラーになる") {
         val result = compile(
             """
             import com.example.plugin.runtime.defaultArgOf
@@ -62,7 +65,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         result.messages shouldContain "Function 'notExist' not found"
     }
 
-    xtest("存在しないパラメータ名はコンパイルエラーになる") {
+    test("存在しないパラメータ名はコンパイルエラーになる") {
         val result = compile(
             """
             import com.example.plugin.runtime.defaultArgOf
@@ -75,7 +78,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         result.messages shouldContain "Parameter 'notExist' not found"
     }
 
-    xtest("定数でない funName はコンパイルエラーになる") {
+    test("定数でない funName はコンパイルエラーになる") {
         val result = compile(
             """
             import com.example.plugin.runtime.defaultArgOf
@@ -89,7 +92,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         result.messages shouldContain "must be a compile-time string constant"
     }
 
-    xtest("デフォルト値のないパラメータはコンパイルエラーになる") {
+    test("デフォルト値のないパラメータはコンパイルエラーになる") {
         val result = compile(
             """
             import com.example.plugin.runtime.defaultArgOf
