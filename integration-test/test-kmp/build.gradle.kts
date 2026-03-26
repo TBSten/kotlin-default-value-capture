@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation(project(":runtime"))
-    kotlinCompilerPluginClasspath(project(":plugin"))
+    kotlinCompilerPluginClasspath(project(":compiler-plugin"))
 }
 
 application {

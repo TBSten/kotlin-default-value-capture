@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     compileOnly(libs.kotlinGradlePluginApi)
-    implementation(project(":plugin"))
+    implementation(project(":compiler-plugin"))
     implementation(project(":runtime"))
 }
 
