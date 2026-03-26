@@ -1,3 +1,5 @@
+package com.example.testapp
+
 import com.example.plugin.runtime.defaultArgOf
 
 fun myFunction(option1: String = 123.toString()) { /* ... */ }
@@ -7,8 +9,11 @@ class MyClass {
 }
 
 fun main() {
-    // 文字列ベース API
-    val op1Default = defaultArgOf<String>(funName = "myFunction", argName = "option1")
+    // 文字列ベース API（FQN 必須）
+    val op1Default = defaultArgOf<String>(
+        funName = "com.example.testapp.myFunction",
+        argName = "option1",
+    )
     check(op1Default == "123") { "string-based: got $op1Default" }
     println("OK (string-based): $op1Default")
 

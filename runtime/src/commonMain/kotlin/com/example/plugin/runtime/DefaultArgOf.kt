@@ -6,46 +6,41 @@ package com.example.plugin.runtime
  * The compiler plugin replaces this call with the actual default value expression
  * from the target function's parameter. This function is never executed at runtime.
  *
- * ### Basic usage — string literal default
+ * ### Basic usage
  * ```kotlin
+ * package com.example
  * fun greet(name: String = "World") {}
  *
- * val nameDefault = defaultArgOf<String>(funName = "greet", argName = "name")
+ * val nameDefault = defaultArgOf<String>(
+ *     funName = "com.example.greet",
+ *     argName = "name",
+ * )
  * // nameDefault == "World"
  * ```
  *
  * ### Expression default values
  * Default values that are expressions (not just literals) are also captured:
  * ```kotlin
+ * package com.example
  * fun connect(timeout: String = (30 * 1000).toString()) {}
  *
- * val timeoutDefault = defaultArgOf<String>(funName = "connect", argName = "timeout")
- * // timeoutDefault == "30000"
- * ```
- *
- * ### Fully qualified name
- * When multiple functions share the same short name, use the fully qualified name
- * to disambiguate:
- * ```kotlin
- * package com.example
- * fun fetch(url: String = "https://example.com") {}
- *
- * val urlDefault = defaultArgOf<String>(
- *     funName = "com.example.fetch",
- *     argName = "url",
+ * val timeoutDefault = defaultArgOf<String>(
+ *     funName = "com.example.connect",
+ *     argName = "timeout",
  * )
+ * // timeoutDefault == "30000"
  * ```
  *
  * ### Compile-time errors
  * The following cases produce compile errors:
+ * - `funName` is not a fully qualified name (e.g. `"greet"` instead of `"com.example.greet"`)
  * - `funName` or `argName` is not a compile-time string constant
  * - The specified function does not exist in the current module
  * - The specified parameter does not exist
  * - The parameter has no default value
  *
  * @param T the type of the default value
- * @param funName the name of the target function (short name or fully qualified name).
- *   If multiple functions share the same short name, use the fully qualified name.
+ * @param funName the **fully qualified name** of the target function (e.g. `"com.example.greet"`)
  * @param argName the name of the parameter whose default value to capture
  * @return the default value expression, inlined at compile time
  * @see defaultArgOf(Function, String) for a type-safe alternative using function references

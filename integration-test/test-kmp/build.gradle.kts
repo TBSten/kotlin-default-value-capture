@@ -9,5 +9,5 @@ dependencies {
 }
 
 application {
-    mainClass = "MainKt"
+    mainClass = "com.example.testapp.MainKt"
 }

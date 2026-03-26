@@ -113,6 +113,10 @@ class DefaultArgOfFirChecker(private val session: FirSession) :
         expression: FirFunctionCall,
         funName: String,
     ): FirFunctionSymbol<*>? {
+        if (!funName.contains('.')) {
+            reporter.reportOn(expression.source, DefaultArgOfErrors.NOT_FQN, funName)
+            return null
+        }
         val funFqName = FqName(funName)
         val packageFqName = funFqName.parent()
         val shortName = funFqName.shortName()

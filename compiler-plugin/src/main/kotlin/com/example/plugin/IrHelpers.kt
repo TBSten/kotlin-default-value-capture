@@ -49,58 +49,47 @@ internal fun IrCall.getStringArgOrThrow(paramName: String): String {
 }
 
 /**
- * Searches the module for a function matching [funName].
+ * Searches the module for a function matching [funName] by fully qualified name.
  *
- * ### Resolution rules
- * - If [funName] contains `.`, it is treated as a **fully qualified name** (exact match).
- *   Example: `"com.example.greet"` matches only `com.example.greet`.
- * - Otherwise, it matches by **short name**. If multiple candidates are found, an error
- *   is thrown with the list of FQN candidates to help the user disambiguate.
+ * The [funName] must be a fully qualified name (e.g. `"com.example.greet"`).
+ * Short names without a package are rejected with a compile error.
  *
  * ### Examples
  * ```kotlin
  * // FQN — exact match
- * module.findFunctionOrThrow("com.example.greet")
+ * module.findFunctionOrThrow("com.example.greet") // OK
  *
- * // Short name — matches if unique in module
+ * // Short name — compile error
  * module.findFunctionOrThrow("greet")
- *
- * // Short name — throws if ambiguous
- * // "Ambiguous function name 'greet'. Candidates: com.example.greet, com.other.greet"
+ * // → "'funName' must be a fully qualified name (e.g. 'com.example.greet'), but got 'greet'."
  * ```
  *
- * @param funName function name (short name or fully qualified name)
+ * @param funName fully qualified function name
  * @return the matching [IrSimpleFunction]
- * @throws DefaultArgOfPluginException if no function is found or the name is ambiguous
+ * @throws DefaultArgOfPluginException if the name is not FQN, or no function is found
  */
 internal fun IrModuleFragment.findFunctionOrThrow(funName: String): IrSimpleFunction {
-    val isFqn = funName.contains('.')
-    val candidates = mutableListOf<IrSimpleFunction>()
+    if (!funName.contains('.')) {
+        throw DefaultArgOfPluginException(
+            "'funName' must be a fully qualified name (e.g. 'com.example.$funName'), " +
+                "but got '$funName'."
+        )
+    }
+    var result: IrSimpleFunction? = null
     acceptVoid(object : IrVisitorVoid() {
         override fun visitElement(element: IrElement) = element.acceptChildrenVoid(this)
         override fun visitSimpleFunction(declaration: IrSimpleFunction) {
             if (declaration.kotlinFqName.asString() == funName) {
-                candidates.add(declaration)
-            } else if (!isFqn && declaration.name.asString() == funName) {
-                candidates.add(declaration)
+                result = declaration
             }
             super.visitSimpleFunction(declaration)
         }
     })
-    if (candidates.isEmpty()) {
-        throw DefaultArgOfPluginException(
+    return result
+        ?: throw DefaultArgOfPluginException(
             "Function '$funName' not found in module '${name}'. " +
                 "Note: only functions in the same module can be referenced."
         )
-    }
-    if (candidates.size > 1) {
-        val fqns = candidates.joinToString { it.kotlinFqName.asString() }
-        throw DefaultArgOfPluginException(
-            "Ambiguous function name '$funName'. " +
-                "Use fully qualified name to disambiguate. Candidates: $fqns"
-        )
-    }
-    return candidates.single()
 }
 
 /**

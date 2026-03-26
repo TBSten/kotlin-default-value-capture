@@ -28,49 +28,56 @@ class DefaultArgOfTransformerTest : FunSpec({
     test("文字列リテラルのデフォルト値が展開される") {
         val result = compile(
             """
+            package com.example.test
             import com.example.plugin.runtime.defaultArgOf
             fun target(x: String = "hello") {}
-            val v = defaultArgOf<String>(funName = "target", argName = "x")
+            val v = defaultArgOf<String>(funName = "com.example.test.target", argName = "x")
             """.trimIndent()
         )
 
         if (result.exitCode != KotlinCompilation.ExitCode.OK) {
             throw AssertionError("Compilation failed:\n${result.messages}")
         }
-        result.loadTopLevelField("v") shouldBe "hello"
+        result.classLoader.loadClass("com.example.test.SourceKt")
+            .getDeclaredField("v").also { it.isAccessible = true }
+            .get(null) shouldBe "hello"
     }
 
     test("式形式のデフォルト値（123.toString()）が展開される") {
         val result = compile(
             """
+            package com.example.test
             import com.example.plugin.runtime.defaultArgOf
             fun target(x: String = 123.toString()) {}
-            val v = defaultArgOf<String>(funName = "target", argName = "x")
+            val v = defaultArgOf<String>(funName = "com.example.test.target", argName = "x")
             """.trimIndent()
         )
 
         result.exitCode shouldBe KotlinCompilation.ExitCode.OK
-        result.loadTopLevelField("v") shouldBe "123"
+        result.classLoader.loadClass("com.example.test.SourceKt")
+            .getDeclaredField("v").also { it.isAccessible = true }
+            .get(null) shouldBe "123"
     }
 
     test("存在しない関数名はコンパイルエラーになる") {
         val result = compile(
             """
             import com.example.plugin.runtime.defaultArgOf
-            val v = defaultArgOf<String>(funName = "notExist", argName = "x")
+            val v = defaultArgOf<String>(funName = "com.example.notExist", argName = "x")
             """.trimIndent()
         )
 
         result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
-        result.messages shouldContain "Function 'notExist' not found"
+        result.messages shouldContain "Function 'com.example.notExist' not found"
     }
 
     test("存在しないパラメータ名はコンパイルエラーになる") {
         val result = compile(
             """
+            package com.example.test
             import com.example.plugin.runtime.defaultArgOf
             fun target(x: String = "hi") {}
-            val v = defaultArgOf<String>(funName = "target", argName = "notExist")
+            val v = defaultArgOf<String>(funName = "com.example.test.target", argName = "notExist")
             """.trimIndent()
         )
 
@@ -83,13 +90,26 @@ class DefaultArgOfTransformerTest : FunSpec({
             """
             import com.example.plugin.runtime.defaultArgOf
             fun target(x: String = "hi") {}
-            val name = "target"
+            val name = "com.example.target"
             val v = defaultArgOf<String>(funName = name, argName = "x")
             """.trimIndent()
         )
 
         result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
         result.messages shouldContain "must be a compile-time string constant"
+    }
+
+    test("short name はコンパイルエラーになる（FQN 必須）") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(x: String = "hi") {}
+            val v = defaultArgOf<String>(funName = "target", argName = "x")
+            """.trimIndent()
+        )
+
+        result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+        result.messages shouldContain "must be a fully qualified name"
     }
 
     // --- 関数参照ベース API ---
@@ -218,19 +238,7 @@ class DefaultArgOfTransformerTest : FunSpec({
             .get(null) shouldBe "fqn-default"
     }
 
-    test("short name で同名関数が複数ある場合はコンパイルエラーになる") {
-        val result = compile(
-            """
-            import com.example.plugin.runtime.defaultArgOf
-            fun target(x: String = "a") {}
-            object Foo { fun target(x: String = "b") {} }
-            val v = defaultArgOf<String>(funName = "target", argName = "x")
-            """.trimIndent()
-        )
-
-        result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
-        result.messages shouldContain "Ambiguous function name 'target'"
-    }
+    // short name は FQN 必須エラーになる（曖昧マッチ検出より先に弾かれる）
 
     // --- エッジケース ---
 
@@ -273,6 +281,7 @@ class DefaultArgOfTransformerTest : FunSpec({
     //  IrFunctionExpression を IrFactory で再構築する。
     xtest("ラムダのデフォルト値が展開される") {
         val result = compile(
+            // language=kotlin
             """
             import com.example.plugin.runtime.defaultArgOf
             fun target(action: () -> String = { "lambda-result" }) {}
@@ -354,12 +363,13 @@ class DefaultArgOfTransformerTest : FunSpec({
 
     // --- 文字列ベース API エラーケース ---
 
-    test("デフォルト値のないパラメータはコンパイルエラーになる") {
+    test("デフォルト値のないパラメータはコンパイルエラーになる（文字列ベース）") {
         val result = compile(
             """
+            package com.example.test
             import com.example.plugin.runtime.defaultArgOf
             fun target(x: String) {}
-            val v = defaultArgOf<String>(funName = "target", argName = "x")
+            val v = defaultArgOf<String>(funName = "com.example.test.target", argName = "x")
             """.trimIndent()
         )
 
