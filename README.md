@@ -16,7 +16,7 @@ This plugin replaces `defaultArgOf` function calls with **the actual default val
 ```kotlin
 // build.gradle.kts
 plugins {
-    id("me.tbsten.defaultargcapture") version "0.1.0-alpha01"
+    id("me.tbsten.defaultargcapture") version "0.1.0-alpha02"
 }
 ```
 
@@ -25,7 +25,7 @@ Simply applying the plugin automatically adds the runtime library dependency and
 ## Usage
 
 ```kotlin
-import com.example.plugin.runtime.defaultArgOf
+import me.tbsten.defaultargcapture.runtime.defaultArgOf
 
 fun greet(name: String = "World") {
     println("Hello, $name!")

@@ -6,7 +6,7 @@ autoServiceKsp = "1.2.0"
 kctfork = "0.12.1"
 kotest = "6.0.0.M2"
 mavenPublish = "0.30.0"
-defaultarg = "0.1.0-alpha01"
+defaultarg = "0.1.0-alpha02"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
