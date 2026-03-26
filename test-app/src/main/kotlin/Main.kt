@@ -2,6 +2,10 @@ import com.example.plugin.runtime.defaultArgOf
 
 fun myFunction(option1: String = 123.toString()) { /* ... */ }
 
+class MyClass {
+    fun myMethod(greeting: String = "hello") {}
+}
+
 fun main() {
     // 文字列ベース API
     val op1Default = defaultArgOf<String>(funName = "myFunction", argName = "option1")
@@ -12,4 +16,9 @@ fun main() {
     val op1Ref = defaultArgOf<String>(::myFunction, "option1")
     check(op1Ref == "123") { "func-ref: got $op1Ref" }
     println("OK (func-ref): $op1Ref")
+
+    // メンバ関数
+    val memberDefault = defaultArgOf<String>(MyClass::myMethod, "greeting")
+    check(memberDefault == "hello") { "member: got $memberDefault" }
+    println("OK (member): $memberDefault")
 }

@@ -148,6 +148,55 @@ class DefaultArgOfTransformerTest : FunSpec({
         result.messages shouldContain "has no default value"
     }
 
+    // --- メンバ関数 ---
+
+    test("メンバ関数の関数参照でデフォルト値が展開される") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            class MyClass {
+                fun myMethod(x: String = "member-default") {}
+            }
+            val v = defaultArgOf<String>(MyClass::myMethod, "x")
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        result.loadTopLevelField("v") shouldBe "member-default"
+    }
+
+    test("extension function の関数参照でデフォルト値が展開される") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun String.myExt(x: Int = 42) {}
+            val v = defaultArgOf<Int>(String::myExt, "x")
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        result.loadTopLevelField("v") shouldBe 42
+    }
+
+    test("メンバ関数の関数参照で存在しないパラメータはコンパイルエラーになる") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            class MyClass {
+                fun myMethod(x: String = "hi") {}
+            }
+            val v = defaultArgOf<String>(MyClass::myMethod, "notExist")
+            """.trimIndent()
+        )
+
+        result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+        result.messages shouldContain "Parameter 'notExist' not found"
+    }
+
     // --- 文字列ベース API エラーケース ---
 
     test("デフォルト値のないパラメータはコンパイルエラーになる") {
