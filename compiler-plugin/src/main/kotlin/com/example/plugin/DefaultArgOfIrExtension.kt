@@ -7,6 +7,28 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
+/**
+ * IR generation extension that kicks off the `defaultArgOf` call replacement.
+ *
+ * Creates a [DefaultArgOfTransformer] and runs it over the entire [IrModuleFragment],
+ * replacing every `defaultArgOf(...)` call site with the default value expression
+ * from the target function parameter.
+ *
+ * ### Transformation example
+ * Given:
+ * ```kotlin
+ * fun greet(name: String = "World") {}
+ * val x = defaultArgOf<String>(::greet, "name")
+ * ```
+ * After transformation, the IR for `x` becomes equivalent to:
+ * ```kotlin
+ * val x = "World"
+ * ```
+ *
+ * ### Error reporting
+ * Errors (e.g. missing function, missing parameter) are reported via [MessageCollector],
+ * which is obtained from the [CompilerConfiguration].
+ */
 class DefaultArgOfIrExtension(
     private val configuration: CompilerConfiguration,
 ) : IrGenerationExtension {

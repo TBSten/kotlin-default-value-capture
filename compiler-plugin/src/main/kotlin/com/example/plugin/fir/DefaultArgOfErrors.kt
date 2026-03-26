@@ -7,12 +7,34 @@ import org.jetbrains.kotlin.diagnostics.SourceElementPositioningStrategies
 import org.jetbrains.kotlin.diagnostics.rendering.BaseDiagnosticRendererFactory
 import org.jetbrains.kotlin.diagnostics.rendering.CommonRenderers
 
+/**
+ * Diagnostic factory definitions for defaultArgOf FIR checker errors.
+ *
+ * Each factory produces a compile-time error diagnostic with a human-readable message.
+ * These diagnostics are reported by [DefaultArgOfFirChecker] during the FIR analysis phase.
+ *
+ * ### Diagnostic types
+ *
+ * | Factory | When reported | Example message |
+ * |---|---|---|
+ * | [NON_CONST_ARG] | Argument is not a string literal | `'funName' must be a compile-time string constant.` |
+ * | [FUNCTION_NOT_FOUND] | Function does not exist | `Function 'foo' not found.` |
+ * | [PARAMETER_NOT_FOUND] | Parameter does not exist | `Parameter 'bar' not found.` |
+ * | [NO_DEFAULT_VALUE] | Parameter has no default | `Parameter 'bar' has no default value.` |
+ */
 object DefaultArgOfErrors {
     val Renderer: BaseDiagnosticRendererFactory = RendererFactory
 
+    /** Reported when `funName` or `argName` is not a compile-time string constant. */
     val NON_CONST_ARG = factory1("DEFAULT_ARG_OF_NON_CONST_ARG")
+
+    /** Reported when the specified function cannot be found via FIR symbol provider. */
     val FUNCTION_NOT_FOUND = factory1("DEFAULT_ARG_OF_FUNCTION_NOT_FOUND")
+
+    /** Reported when the specified parameter does not exist on the target function. */
     val PARAMETER_NOT_FOUND = factory1("DEFAULT_ARG_OF_PARAMETER_NOT_FOUND")
+
+    /** Reported when the specified parameter has no default value. */
     val NO_DEFAULT_VALUE = factory1("DEFAULT_ARG_OF_NO_DEFAULT_VALUE")
 
     private fun factory1(name: String) = KtDiagnosticFactory1<String>(

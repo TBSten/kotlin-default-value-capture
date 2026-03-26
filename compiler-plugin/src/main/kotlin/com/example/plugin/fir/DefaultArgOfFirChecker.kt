@@ -14,6 +14,41 @@ import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.name.FqName
 
+/**
+ * FIR-phase checker that validates `defaultArgOf` calls during frontend analysis.
+ *
+ * Runs before the IR phase and provides early error reporting with accurate line numbers.
+ *
+ * ### Validated cases
+ *
+ * **Non-constant arguments:**
+ * ```kotlin
+ * val name = "greet"
+ * defaultArgOf<String>(name, "x") // ERROR: 'funName' must be a compile-time string constant
+ * ```
+ *
+ * **Non-existent function (string-based):**
+ * ```kotlin
+ * defaultArgOf<String>("nonExistent", "x") // ERROR: Function 'nonExistent' not found
+ * ```
+ *
+ * **Non-existent parameter:**
+ * ```kotlin
+ * fun greet(name: String = "World") {}
+ * defaultArgOf<String>(::greet, "typo") // ERROR: Parameter 'typo' not found
+ * ```
+ *
+ * **No default value:**
+ * ```kotlin
+ * fun greet(name: String) {} // no default
+ * defaultArgOf<String>(::greet, "name") // ERROR: Parameter 'name' has no default value
+ * ```
+ *
+ * ### Best-effort design
+ * This checker is wrapped in a try-catch. If an unexpected exception occurs (e.g. due to
+ * incomplete resolution in certain environments), it is silently ignored and the IR phase
+ * reports the equivalent error as a fallback.
+ */
 class DefaultArgOfFirChecker(private val session: FirSession) :
     FirExpressionChecker<FirFunctionCall>(MppCheckerKind.Common) {
 

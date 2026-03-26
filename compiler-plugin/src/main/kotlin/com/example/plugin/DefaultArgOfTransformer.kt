@@ -4,17 +4,41 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
+/**
+ * IR transformer that replaces `defaultArgOf(...)` calls with the actual default value expressions.
+ *
+ * ### Resolution strategies
+ *
+ * **Function reference overload** (`defaultArgOf(::greet, "name")`):
+ * The first argument is an `IrFunctionReference`, so the target function is resolved
+ * directly from the reference symbol. This works for top-level functions, member functions,
+ * and extension functions.
+ *
+ * **String-based overload** (`defaultArgOf("greet", "name")`):
+ * The target function is looked up by name within the [IrModuleFragment].
+ * Both short names and fully qualified names are supported. If a short name matches
+ * multiple functions, a compile error is reported with the list of FQN candidates.
+ *
+ * ### Replacement process
+ * 1. Resolve the target function (via function reference or name lookup)
+ * 2. Find the named parameter and extract its `defaultValue` IR node
+ * 3. Deep-copy the expression with [deepCopyWithSymbols] to avoid symbol conflicts
+ * 4. Recursively transform the copy (handles nested `defaultArgOf` calls)
+ *
+ * ### Error handling
+ * Errors are wrapped in [DefaultArgOfPluginException], caught here, and reported
+ * via [MessageCollector] as compiler errors. The original call expression is preserved
+ * to allow the compiler to continue reporting other errors.
+ */
 class DefaultArgOfTransformer(
     private val context: IrPluginContext,
     private val module: IrModuleFragment,
