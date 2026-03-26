@@ -28,10 +28,29 @@ class DefaultArgOfTransformer(
         val symbol = defaultArgOfSymbol ?: return super.visitCall(expression)
         if (expression.symbol != symbol) return super.visitCall(expression)
 
+        val funName = expression.getStringArgOrThrow("funName")
+        val argName = expression.getStringArgOrThrow("argName")
+
+        val targetFunction = module.findFunctionOrThrow(funName)
+
+        val param = targetFunction.valueOnlyParameters
+            .firstOrNull { it.name.asString() == argName }
+            ?: throw DefaultArgOfPluginException(
+                "Parameter '$argName' not found in '$funName'. " +
+                    "Available: ${targetFunction.valueOnlyParameters.joinToString { it.name.asString() }}"
+            )
+
+        val defaultValue = param.defaultValue
+            ?: throw DefaultArgOfPluginException(
+                "Parameter '$argName' in '$funName' has no default value."
+            )
+
         messageCollector.report(
             CompilerMessageSeverity.WARNING,
-            "[DefaultArgOf] HIT: ${expression.dump()}"
+            "[DefaultArgOf] defaultValue IR:\n${defaultValue.expression.dump()}"
         )
+
+        // TODO: IR 差し替え（task-008 で対応）
         return super.visitCall(expression)
     }
 }
