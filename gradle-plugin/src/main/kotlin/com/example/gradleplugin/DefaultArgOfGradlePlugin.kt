@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
  * Apply this plugin in your `build.gradle.kts`:
  * ```kotlin
  * plugins {
- *     id("com.example.defaultarg")
+ *     id("me.tbsten.defaultargcapture") version "0.1.0-alpha01"
  * }
  * ```
  *
@@ -39,7 +39,10 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 class DefaultArgOfGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun apply(target: Project) {
-        target.dependencies.add("implementation", target.project(":runtime"))
+        target.dependencies.add(
+            "implementation",
+            "$GROUP_ID:runtime:$VERSION",
+        )
     }
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
@@ -47,13 +50,18 @@ class DefaultArgOfGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun getCompilerPluginId(): String = "com.example.defaultarg"
 
     override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
-        groupId = "com.example",
-        artifactId = "defaultarg-plugin",
-        version = "1.0.0",
+        groupId = GROUP_ID,
+        artifactId = "compiler-plugin",
+        version = VERSION,
     )
 
     override fun applyToCompilation(
         kotlinCompilation: KotlinCompilation<*>,
     ): Provider<List<SubpluginOption>> =
         kotlinCompilation.target.project.provider { emptyList() }
+
+    companion object {
+        private const val GROUP_ID = "me.tbsten.defaultargcapture"
+        private const val VERSION = "0.1.0-alpha01"
+    }
 }

@@ -5,6 +5,8 @@ autoService = "1.1.1"
 autoServiceKsp = "1.2.0"
 kctfork = "0.12.1"
 kotest = "6.0.0.M2"
+mavenPublish = "0.30.0"
+defaultarg = "0.1.0-alpha01"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -18,3 +20,4 @@ kotestAssertionsCore = { module = "io.kotest:kotest-assertions-core", version.re
 
 [plugins]
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

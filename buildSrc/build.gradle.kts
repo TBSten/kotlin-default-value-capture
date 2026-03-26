@@ -12,4 +12,6 @@ kotlin {
 dependencies {
     // Add a dependency on the Kotlin Gradle plugin, so that convention plugins can apply it.
     implementation(libs.kotlinGradlePlugin)
+    // Vanniktech Maven Publish plugin for convention plugin usage.
+    implementation(libs.plugins.mavenPublish.map { "${it.pluginId}:${it.pluginId}.gradle.plugin:${it.version}" })
 }

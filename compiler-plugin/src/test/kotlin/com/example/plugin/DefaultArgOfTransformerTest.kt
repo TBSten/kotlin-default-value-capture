@@ -266,7 +266,7 @@ class DefaultArgOfTransformerTest : FunSpec({
 
     // TODO ラムダのデフォルト値は deepCopyWithSymbols でシンボルコピーの問題が発生する既知の制限
     //  将来的に IrFactory でラムダを再構築する対応を検討
-    test("ラムダのデフォルト値はコンパイルエラーになる（既知の制限）").config(enabled = false) {
+    xtest("ラムダのデフォルト値はコンパイルエラーになる（既知の制限）") {
         val result = compile(
             """
             import com.example.plugin.runtime.defaultArgOf

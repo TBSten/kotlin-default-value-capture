@@ -1,5 +1,14 @@
 plugins {
     kotlin("multiplatform")
+    id("buildsrc.convention.publish-convention")
+}
+
+mavenPublishing {
+    coordinates(
+        groupId = "me.tbsten.defaultargcapture",
+        artifactId = "runtime",
+        version = libs.versions.defaultarg.get(),
+    )
 }
 
 kotlin {

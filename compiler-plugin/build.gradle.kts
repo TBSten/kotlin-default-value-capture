@@ -1,6 +1,15 @@
 plugins {
     id("buildsrc.convention.kotlin-jvm")
     alias(libs.plugins.ksp)
+    id("buildsrc.convention.publish-convention")
+}
+
+mavenPublishing {
+    coordinates(
+        groupId = "me.tbsten.defaultargcapture",
+        artifactId = "compiler-plugin",
+        version = libs.versions.defaultarg.get(),
+    )
 }
 
 kotlin {
