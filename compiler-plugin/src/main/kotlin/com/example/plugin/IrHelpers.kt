@@ -7,12 +7,16 @@ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
+import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
+import org.jetbrains.kotlin.name.Name
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Extracts a compile-time string constant from a named argument of a `defaultArgOf` call.
@@ -122,3 +126,39 @@ internal fun IrCall.findFunctionReferenceArg(): IrFunctionReference? {
  */
 internal val IrSimpleFunction.valueOnlyParameters: List<IrValueParameter>
     get() = parameters.filter { !it.isHidden }
+
+private val lambdaRenameCounter = AtomicInteger(0)
+
+/**
+ * Renames lambda/anonymous function declarations in a deep-copied expression to avoid
+ * JVM signature clashes with the originals.
+ *
+ * After `deepCopyWithSymbols`, lambda backing functions like `target$lambda$0` get new IR
+ * symbols but keep the same JVM name, causing "Platform declaration clash". This function
+ * walks the copied expression tree and renames:
+ * - `IrFunctionExpression.function` (lambda/anonymous function declarations)
+ * - Any `IrSimpleFunction` with `$lambda` or `$anonymous` in the name
+ *
+ * ### Example
+ * `target$lambda$0` → `defaultArgOf$0$lambda`
+ */
+internal fun IrExpression.renameCopiedLambdas() {
+    acceptVoid(object : IrVisitorVoid() {
+        override fun visitElement(element: IrElement) = element.acceptChildrenVoid(this)
+
+        override fun visitFunctionExpression(expression: IrFunctionExpression) {
+            val id = lambdaRenameCounter.getAndIncrement()
+            expression.function.name = Name.identifier("defaultArgOf\$$id\$lambda")
+            super.visitFunctionExpression(expression)
+        }
+
+        override fun visitSimpleFunction(declaration: IrSimpleFunction) {
+            val name = declaration.name.asString()
+            if ("\$lambda" in name || "\$anonymous" in name) {
+                val id = lambdaRenameCounter.getAndIncrement()
+                declaration.name = Name.identifier("defaultArgOf\$$id\$lambda")
+            }
+            super.visitSimpleFunction(declaration)
+        }
+    })
+}

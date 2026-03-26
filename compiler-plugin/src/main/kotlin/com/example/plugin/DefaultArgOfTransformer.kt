@@ -83,10 +83,11 @@ class DefaultArgOfTransformer(
             )
 
         val copied = defaultValue.expression.deepCopyWithSymbols(targetFunction)
+        copied.renameCopiedLambdas()
         return copied.transform(this, null)
     }
 
-    private fun resolveTargetFunction(expression: IrCall): IrSimpleFunction {
+private fun resolveTargetFunction(expression: IrCall): IrSimpleFunction {
         val funcRef = expression.findFunctionReferenceArg()
         if (funcRef != null) {
             val owner = funcRef.symbol.owner

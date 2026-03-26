@@ -272,14 +272,7 @@ class DefaultArgOfTransformerTest : FunSpec({
         result.loadTopLevelField("v") shouldBe true
     }
 
-    // TODO ラムダのデフォルト値は deepCopyWithSymbols でシンボルコピーの問題が発生する既知の制限
-    //  将来的に IrFactory でラムダを再構築する対応を検討
-    // TODO ラムダのデフォルト値は deepCopyWithSymbols で JVM シグネチャ衝突が発生する既知の制限
-    //  deepCopy がラムダのバッキング関数 (target$lambda$0) を元と同じ JVM 名でコピーするため
-    //  "Platform declaration clash" エラーになる。
-    //  対応案: deepCopy の initialParent を呼び出し元の関数に変更するか、
-    //  IrFunctionExpression を IrFactory で再構築する。
-    xtest("ラムダのデフォルト値が展開される") {
+    test("ラムダのデフォルト値が展開される") {
         val result = compile(
             // language=kotlin
             """
