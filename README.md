@@ -1,15 +1,15 @@
 # kotlin-default-value-capture
 
-Kotlin の関数デフォルト引数の値を、コンパイル時に取得できるコンパイラプラグインです。
+A Kotlin compiler plugin that lets you retrieve function default argument values at compile time.
 
-## モチベーション
+## Motivation
 
-Kotlin では関数にデフォルト引数を定義できますが、その値をプログラムから参照する標準的な手段がありません。
-例えば CLI ツールや設定フレームワークで「デフォルト値をヘルプに表示したい」といったユースケースでは、値を二重管理するか、リフレクションに頼る必要があります。
+Kotlin allows defining default arguments for function parameters, but there is no standard way to access those values programmatically.
+For example, if you want to display default values in a CLI help message or a configuration framework, you would need to either duplicate the values or rely on reflection.
 
-このプラグインは `defaultArgOf` という関数呼び出しをコンパイル時に **デフォルト値の式そのもの** に差し替えることで、型安全かつゼロランタイムコストで解決します。
+This plugin replaces `defaultArgOf` function calls with **the actual default value expressions** at compile time, providing a type-safe solution with zero runtime cost.
 
-## セットアップ
+## Setup
 
 ### Gradle
 
@@ -20,9 +20,9 @@ plugins {
 }
 ```
 
-プラグインを適用するだけで、runtime ライブラリの依存追加やコンパイラプラグインの設定は自動で行われます。
+Simply applying the plugin automatically adds the runtime library dependency and configures the compiler plugin.
 
-## 使い方
+## Usage
 
 ```kotlin
 import com.example.plugin.runtime.defaultArgOf
@@ -32,9 +32,9 @@ fun greet(name: String = "World") {
 }
 
 fun main() {
-    // コンパイル時に "World" に置き換えられる
+    // Replaced with "World" at compile time
     val defaultName = defaultArgOf<String>(funName = "greet", argName = "name")
-    println("デフォルト値: $defaultName") // => デフォルト値: World
+    println("Default value: $defaultName") // => Default value: World
 }
 ```
 
@@ -44,46 +44,45 @@ fun main() {
 inline fun <reified T> defaultArgOf(funName: String, argName: String): T
 ```
 
-| パラメータ | 説明 |
+| Parameter | Description |
 |---|---|
-| `T` | デフォルト値の型 |
-| `funName` | 対象関数の完全修飾名 |
-| `argName` | 対象パラメータの名前 |
+| `T` | The type of the default value |
+| `funName` | Fully qualified name of the target function |
+| `argName` | Name of the target parameter |
 
-- 引数はすべて **コンパイル時定数** である必要があります
-- 存在しない関数名・引数名や、デフォルト値のないパラメータを指定した場合は **コンパイルエラー** になります
+- All arguments must be **compile-time constants**
+- Specifying a non-existent function/parameter name or a parameter without a default value results in a **compile error**
 
-### ユースケース例
+### Example: CLI Help
 
 ```kotlin
-// CLI ツールのヘルプ表示
 fun serve(port: Int = 8080, host: String = "localhost") { /* ... */ }
 
 fun printHelp() {
     val defaultPort = defaultArgOf<Int>(funName = "serve", argName = "port")
     val defaultHost = defaultArgOf<String>(funName = "serve", argName = "host")
-    println("  --port  ポート番号 (デフォルト: $defaultPort)")
-    println("  --host  ホスト名   (デフォルト: $defaultHost)")
+    println("  --port  Port number (default: $defaultPort)")
+    println("  --host  Hostname    (default: $defaultHost)")
 }
 ```
 
-## 既知の制限
+## Known Limitations
 
-| 制限 | 備考 |
+| Limitation | Note |
 |---|---|
-| 同一モジュール内の関数のみ参照可能 | 別モジュールの関数のデフォルト値は取得できません |
-| `funName` に完全修飾名が必要 | 短縮名では名前の衝突が起こる可能性があるため |
+| Only functions in the same module can be referenced | Default values from other modules are not available in the IR |
+| `funName` requires a fully qualified name | Short names may cause ambiguity |
 
-## 動作原理
+## How It Works
 
-1. ユーザーコードで `defaultArgOf<T>(funName = "f", argName = "x")` を呼び出す
-2. FIR チェッカーが型解析フェーズで引数の妥当性を検証し、問題があればコンパイルエラーを報告
-3. IR Transformer が呼び出しを見つけ、対象関数のデフォルト値 IR 式で差し替える
+1. You call `defaultArgOf<T>(funName = "f", argName = "x")` in your code
+2. The FIR checker validates the arguments during type analysis and reports compile errors if invalid
+3. The IR Transformer finds the call and replaces it with the default value IR expression from the target function
 
-## 要件
+## Requirements
 
-- Kotlin 2.x (K2 コンパイラ)
+- Kotlin 2.x (K2 compiler)
 
-## ライセンス
+## License
 
 MIT
