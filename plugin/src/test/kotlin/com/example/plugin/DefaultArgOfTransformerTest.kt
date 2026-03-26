@@ -197,6 +197,41 @@ class DefaultArgOfTransformerTest : FunSpec({
         result.messages shouldContain "Parameter 'notExist' not found"
     }
 
+    // --- 文字列ベース API: FQN / 曖昧マッチ ---
+
+    test("FQN 指定でデフォルト値が展開される") {
+        val result = compile(
+            """
+            package com.example.test
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(x: String = "fqn-default") {}
+            val v = defaultArgOf<String>(funName = "com.example.test.target", argName = "x")
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        result.classLoader.loadClass("com.example.test.SourceKt")
+            .getDeclaredField("v")
+            .also { it.isAccessible = true }
+            .get(null) shouldBe "fqn-default"
+    }
+
+    test("short name で同名関数が複数ある場合はコンパイルエラーになる") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(x: String = "a") {}
+            object Foo { fun target(x: String = "b") {} }
+            val v = defaultArgOf<String>(funName = "target", argName = "x")
+            """.trimIndent()
+        )
+
+        result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+        result.messages shouldContain "Ambiguous function name 'target'"
+    }
+
     // --- 文字列ベース API エラーケース ---
 
     test("デフォルト値のないパラメータはコンパイルエラーになる") {

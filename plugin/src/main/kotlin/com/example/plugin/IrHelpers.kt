@@ -35,23 +35,33 @@ internal fun IrCall.getStringArgOrThrow(paramName: String): String {
 }
 
 internal fun IrModuleFragment.findFunctionOrThrow(funName: String): IrSimpleFunction {
-    var result: IrSimpleFunction? = null
+    val isFqn = funName.contains('.')
+    val candidates = mutableListOf<IrSimpleFunction>()
     acceptVoid(object : IrVisitorVoid() {
         override fun visitElement(element: IrElement) = element.acceptChildrenVoid(this)
         override fun visitSimpleFunction(declaration: IrSimpleFunction) {
-            if (declaration.kotlinFqName.asString() == funName ||
-                declaration.name.asString() == funName
-            ) {
-                result = declaration
+            if (declaration.kotlinFqName.asString() == funName) {
+                candidates.add(declaration)
+            } else if (!isFqn && declaration.name.asString() == funName) {
+                candidates.add(declaration)
             }
             super.visitSimpleFunction(declaration)
         }
     })
-    return result
-        ?: throw DefaultArgOfPluginException(
+    if (candidates.isEmpty()) {
+        throw DefaultArgOfPluginException(
             "Function '$funName' not found in module '${name}'. " +
                 "Note: only functions in the same module can be referenced."
         )
+    }
+    if (candidates.size > 1) {
+        val fqns = candidates.joinToString { it.kotlinFqName.asString() }
+        throw DefaultArgOfPluginException(
+            "Ambiguous function name '$funName'. " +
+                "Use fully qualified name to disambiguate. Candidates: $fqns"
+        )
+    }
+    return candidates.single()
 }
 
 internal fun IrCall.findFunctionReferenceArg(): IrFunctionReference? {
