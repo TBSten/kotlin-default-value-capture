@@ -4,8 +4,11 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.CallableId
@@ -18,15 +21,15 @@ class DefaultArgOfTransformer(
     private val messageCollector: MessageCollector,
 ) : IrElementTransformerVoid() {
 
-    private val defaultArgOfSymbol by lazy {
+    private val defaultArgOfSymbols by lazy {
         context.referenceFunctions(
             CallableId(FqName("com.example.plugin.runtime"), Name.identifier("defaultArgOf"))
-        ).singleOrNull()
+        ).toSet()
     }
 
     override fun visitCall(expression: IrCall): IrExpression {
-        val symbol = defaultArgOfSymbol ?: return super.visitCall(expression)
-        if (expression.symbol != symbol) return super.visitCall(expression)
+        if (defaultArgOfSymbols.isEmpty()) return super.visitCall(expression)
+        if (expression.symbol !in defaultArgOfSymbols) return super.visitCall(expression)
 
         return try {
             replaceWithDefaultValue(expression)
@@ -40,24 +43,35 @@ class DefaultArgOfTransformer(
     }
 
     private fun replaceWithDefaultValue(expression: IrCall): IrExpression {
-        val funName = expression.getStringArgOrThrow("funName")
+        val targetFunction = resolveTargetFunction(expression)
         val argName = expression.getStringArgOrThrow("argName")
-
-        val targetFunction = module.findFunctionOrThrow(funName)
 
         val param = targetFunction.valueOnlyParameters
             .firstOrNull { it.name.asString() == argName }
             ?: throw DefaultArgOfPluginException(
-                "Parameter '$argName' not found in '$funName'. " +
+                "Parameter '$argName' not found in '${targetFunction.name}'. " +
                     "Available: ${targetFunction.valueOnlyParameters.joinToString { it.name.asString() }}"
             )
 
         val defaultValue = param.defaultValue
             ?: throw DefaultArgOfPluginException(
-                "Parameter '$argName' in '$funName' has no default value."
+                "Parameter '$argName' in '${targetFunction.name}' has no default value."
             )
 
         val copied = defaultValue.expression.deepCopyWithSymbols(targetFunction)
         return copied.transform(this, null)
+    }
+
+    private fun resolveTargetFunction(expression: IrCall): IrSimpleFunction {
+        val funcRef = expression.findFunctionReferenceArg()
+        if (funcRef != null) {
+            val owner = funcRef.symbol.owner
+            return owner as? IrSimpleFunction
+                ?: throw DefaultArgOfPluginException(
+                    "Referenced function '${owner.name}' is not a simple function."
+                )
+        }
+        val funName = expression.getStringArgOrThrow("funName")
+        return module.findFunctionOrThrow(funName)
     }
 }

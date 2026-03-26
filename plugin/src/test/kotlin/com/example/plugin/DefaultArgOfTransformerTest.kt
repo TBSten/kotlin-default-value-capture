@@ -92,6 +92,64 @@ class DefaultArgOfTransformerTest : FunSpec({
         result.messages shouldContain "must be a compile-time string constant"
     }
 
+    // --- 関数参照ベース API ---
+
+    test("関数参照で文字列リテラルのデフォルト値が展開される") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(x: String = "hello") {}
+            val v = defaultArgOf<String>(::target, "x")
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        result.loadTopLevelField("v") shouldBe "hello"
+    }
+
+    test("関数参照で式形式のデフォルト値が展開される") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(x: String = 123.toString()) {}
+            val v = defaultArgOf<String>(::target, "x")
+            """.trimIndent()
+        )
+
+        result.exitCode shouldBe KotlinCompilation.ExitCode.OK
+        result.loadTopLevelField("v") shouldBe "123"
+    }
+
+    test("関数参照で存在しないパラメータ名はコンパイルエラーになる") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(x: String = "hi") {}
+            val v = defaultArgOf<String>(::target, "notExist")
+            """.trimIndent()
+        )
+
+        result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+        result.messages shouldContain "Parameter 'notExist' not found"
+    }
+
+    test("関数参照でデフォルト値のないパラメータはコンパイルエラーになる") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(x: String) {}
+            val v = defaultArgOf<String>(::target, "x")
+            """.trimIndent()
+        )
+
+        result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+        result.messages shouldContain "has no default value"
+    }
+
+    // --- 文字列ベース API エラーケース ---
+
     test("デフォルト値のないパラメータはコンパイルエラーになる") {
         val result = compile(
             """

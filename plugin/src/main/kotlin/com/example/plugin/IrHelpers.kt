@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
+import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
@@ -51,6 +52,13 @@ internal fun IrModuleFragment.findFunctionOrThrow(funName: String): IrSimpleFunc
             "Function '$funName' not found in module '${name}'. " +
                 "Note: only functions in the same module can be referenced."
         )
+}
+
+internal fun IrCall.findFunctionReferenceArg(): IrFunctionReference? {
+    val funcParam = symbol.owner.parameters
+        .firstOrNull { it.name.asString() == "func" }
+        ?: return null
+    return arguments[funcParam] as? IrFunctionReference
 }
 
 internal val IrSimpleFunction.valueOnlyParameters: List<IrValueParameter>
