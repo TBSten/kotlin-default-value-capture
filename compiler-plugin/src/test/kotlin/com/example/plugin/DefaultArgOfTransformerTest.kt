@@ -232,6 +232,121 @@ class DefaultArgOfTransformerTest : FunSpec({
         result.messages shouldContain "Ambiguous function name 'target'"
     }
 
+    // --- エッジケース ---
+
+    test("Int リテラルのデフォルト値が展開される") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(x: Int = 42) {}
+            val v = defaultArgOf<Int>(::target, "x")
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        result.loadTopLevelField("v") shouldBe 42
+    }
+
+    test("Boolean リテラルのデフォルト値が展開される") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(enabled: Boolean = true) {}
+            val v = defaultArgOf<Boolean>(::target, "enabled")
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        result.loadTopLevelField("v") shouldBe true
+    }
+
+    // TODO ラムダのデフォルト値は deepCopyWithSymbols でシンボルコピーの問題が発生する既知の制限
+    //  将来的に IrFactory でラムダを再構築する対応を検討
+    test("ラムダのデフォルト値はコンパイルエラーになる（既知の制限）").config(enabled = false) {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(action: () -> String = { "lambda-result" }) {}
+            val v = defaultArgOf<() -> String>(::target, "action")
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        @Suppress("UNCHECKED_CAST")
+        val fn = result.loadTopLevelField("v") as () -> String
+        fn() shouldBe "lambda-result"
+    }
+
+    test("リスト生成式のデフォルト値が展開される") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(items: List<String> = listOf("a", "b")) {}
+            val v = defaultArgOf<List<String>>(::target, "items")
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        result.loadTopLevelField("v") shouldBe listOf("a", "b")
+    }
+
+    test("null デフォルト値が展開される") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(x: String? = null) {}
+            val v = defaultArgOf<String?>(::target, "x")
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        result.loadTopLevelField("v") shouldBe null
+    }
+
+    test("defaultArgOf がラムダ内で使われる場合に展開される") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(x: String = "inside-lambda") {}
+            val v = run { defaultArgOf<String>(::target, "x") }
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        result.loadTopLevelField("v") shouldBe "inside-lambda"
+    }
+
+    test("複数パラメータの関数から特定のデフォルト値を取得できる") {
+        val result = compile(
+            """
+            import com.example.plugin.runtime.defaultArgOf
+            fun target(a: String = "first", b: Int = 99, c: Boolean = false) {}
+            val va = defaultArgOf<String>(::target, "a")
+            val vb = defaultArgOf<Int>(::target, "b")
+            val vc = defaultArgOf<Boolean>(::target, "c")
+            """.trimIndent()
+        )
+
+        if (result.exitCode != KotlinCompilation.ExitCode.OK) {
+            throw AssertionError("Compilation failed:\n${result.messages}")
+        }
+        result.loadTopLevelField("va") shouldBe "first"
+        result.loadTopLevelField("vb") shouldBe 99
+        result.loadTopLevelField("vc") shouldBe false
+    }
+
     // --- 文字列ベース API エラーケース ---
 
     test("デフォルト値のないパラメータはコンパイルエラーになる") {
