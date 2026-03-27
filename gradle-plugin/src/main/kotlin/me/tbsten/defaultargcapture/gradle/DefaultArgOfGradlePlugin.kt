@@ -2,6 +2,9 @@ package me.tbsten.defaultargcapture.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinSingleTargetExtension
+import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
@@ -19,8 +22,8 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
  * ```
  *
  * This automatically:
- * 1. Adds the `runtime` module as an `implementation` dependency,
- *    providing the `defaultArgOf(...)` function declarations.
+ * 1. Adds the `runtime` module as a dependency (`commonMainImplementation` for KMP,
+ *    `implementation` for single-target projects), providing the `defaultArgOf(...)` function declarations.
  * 2. Configures the Kotlin compiler to load the defaultArgOf compiler plugin JAR,
  *    which performs the compile-time replacement.
  *
@@ -39,10 +42,16 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 class DefaultArgOfGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun apply(target: Project) {
-        target.dependencies.add(
-            "implementation",
-            "$GROUP_ID:runtime:$VERSION",
-        )
+        super.apply(target)
+        val runtimeDep = "$GROUP_ID:runtime:$VERSION"
+        when (target.kotlinExtension) {
+            is KotlinMultiplatformExtension -> {
+                target.dependencies.add("commonMainImplementation", runtimeDep)
+            }
+            is KotlinSingleTargetExtension<*> -> {
+                target.dependencies.add("implementation", runtimeDep)
+            }
+        }
     }
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true

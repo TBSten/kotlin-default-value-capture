@@ -16,7 +16,7 @@ mavenPublishing {
 }
 
 dependencies {
-    compileOnly(libs.kotlinGradlePluginApi)
+    compileOnly(libs.kotlinGradlePlugin)
     implementation(project(":compiler-plugin"))
     implementation(project(":runtime"))
 }
