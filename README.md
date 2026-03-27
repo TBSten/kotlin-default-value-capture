@@ -16,7 +16,7 @@ This plugin replaces `defaultArgOf` function calls with **the actual default val
 ```kotlin
 // build.gradle.kts
 plugins {
-    id("me.tbsten.defaultargcapture") version "0.1.0-alpha02"
+    id("me.tbsten.defaultargcapture") version "0.1.0-alpha03"
 }
 ```
 
