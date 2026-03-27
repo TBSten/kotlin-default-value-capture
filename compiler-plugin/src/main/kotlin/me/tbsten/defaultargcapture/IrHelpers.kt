@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -79,21 +80,29 @@ internal fun IrModuleFragment.findFunctionOrThrow(funName: String): IrSimpleFunc
                 "but got '$funName'."
         )
     }
-    var result: IrSimpleFunction? = null
+    val matches = mutableListOf<IrSimpleFunction>()
     acceptVoid(object : IrVisitorVoid() {
         override fun visitElement(element: IrElement) = element.acceptChildrenVoid(this)
         override fun visitSimpleFunction(declaration: IrSimpleFunction) {
             if (declaration.kotlinFqName.asString() == funName) {
-                result = declaration
+                matches += declaration
             }
             super.visitSimpleFunction(declaration)
         }
     })
-    return result
-        ?: throw DefaultArgOfPluginException(
+    if (matches.isEmpty()) {
+        throw DefaultArgOfPluginException(
             "Function '$funName' not found in module '${name}'. " +
                 "Note: only functions in the same module can be referenced."
         )
+    }
+    if (matches.size > 1) {
+        throw DefaultArgOfPluginException(
+            "Multiple overloads found for '$funName'. " +
+                "Use a function reference (e.g. ::${FqName(funName).shortName()}) to disambiguate."
+        )
+    }
+    return matches.first()
 }
 
 /**

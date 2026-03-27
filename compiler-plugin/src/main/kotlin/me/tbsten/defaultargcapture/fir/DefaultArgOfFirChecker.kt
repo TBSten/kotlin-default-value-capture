@@ -129,6 +129,11 @@ class DefaultArgOfFirChecker(private val session: FirSession) :
             return null
         }
 
+        if (funcSymbols.size > 1) {
+            reporter.reportOn(expression.source, DefaultArgOfErrors.AMBIGUOUS_OVERLOAD, funName)
+            return null
+        }
+
         return funcSymbols.first()
     }
 }

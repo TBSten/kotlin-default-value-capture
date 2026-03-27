@@ -355,6 +355,39 @@ class DefaultArgOfTransformerTest : FunSpec({
         }
     }
 
+    // --- オーバーロード ---
+
+    test("文字列ベース API でオーバーロード関数がある場合はコンパイルエラーになる") {
+        val result = compile(
+            // language=kotlin
+            """
+            package com.example.test
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
+            fun hoge(option1: String = "hoge default 1", option2: Int = 0) {}
+            fun hoge(option1: String = "hoge default 2", option3: Boolean = false) {}
+            val v = defaultArgOf<String>(funName = "com.example.test.hoge", argName = "option1")
+            """.trimIndent()
+        )
+
+        result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+        result.messages shouldContain "Multiple overloads found for"
+    }
+
+    test("関数参照ベース API ではオーバーロードでも AMBIGUOUS_OVERLOAD エラーにならない") {
+        val result = compile(
+            // language=kotlin
+            """
+            import me.tbsten.defaultargcapture.runtime.defaultArgOf
+            fun hoge(option1: String = "for-int", option2: Int = 0) {}
+            fun hoge(option1: String = "for-string", option2: String = "") {}
+            val v = defaultArgOf<String>(::hoge as (String, Int) -> Unit, "option1")
+            """.trimIndent()
+        )
+
+        // AMBIGUOUS_OVERLOAD エラーは出ないことを確認（文字列ベース固有のエラー）
+        result.messages.contains("Multiple overloads found") shouldBe false
+    }
+
     // --- 文字列ベース API エラーケース ---
 
     test("デフォルト値のないパラメータはコンパイルエラーになる（文字列ベース）") {

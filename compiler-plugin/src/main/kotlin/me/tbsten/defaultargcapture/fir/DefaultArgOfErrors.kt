@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.diagnostics.rendering.CommonRenderers
  * | [PARAMETER_NOT_FOUND] | Parameter does not exist | `Parameter 'bar' not found.` |
  * | [NOT_FQN] | funName is not a fully qualified name | `'funName' must be a fully qualified name, but got 'foo'.` |
  * | [NO_DEFAULT_VALUE] | Parameter has no default | `Parameter 'bar' has no default value.` |
+ * | [AMBIGUOUS_OVERLOAD] | Multiple overloads found | `Multiple overloads found for 'com.example.foo'. ...` |
  */
 object DefaultArgOfErrors {
     val Renderer: BaseDiagnosticRendererFactory = RendererFactory
@@ -41,6 +42,9 @@ object DefaultArgOfErrors {
     /** Reported when the specified parameter has no default value. */
     val NO_DEFAULT_VALUE = factory1("DEFAULT_ARG_OF_NO_DEFAULT_VALUE")
 
+    /** Reported when multiple overloads match the specified function name (string-based API). */
+    val AMBIGUOUS_OVERLOAD = factory1("DEFAULT_ARG_OF_AMBIGUOUS_OVERLOAD")
+
     private fun factory1(name: String) = KtDiagnosticFactory1<String>(
         name,
         Severity.ERROR,
@@ -56,6 +60,7 @@ object DefaultArgOfErrors {
             map.put(FUNCTION_NOT_FOUND, "Function ''{0}'' not found.", CommonRenderers.STRING)
             map.put(PARAMETER_NOT_FOUND, "Parameter ''{0}'' not found.", CommonRenderers.STRING)
             map.put(NO_DEFAULT_VALUE, "Parameter ''{0}'' has no default value.", CommonRenderers.STRING)
+            map.put(AMBIGUOUS_OVERLOAD, "Multiple overloads found for ''{0}''. Use a function reference (e.g. ::{0}) to disambiguate.", CommonRenderers.STRING)
         }
     }
 }
