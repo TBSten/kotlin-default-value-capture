@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "contribute-skill": {
+      "source": "tbsten/skills",
+      "sourceType": "github",
+      "computedHash": "a7056eda8ac2d2cb7198001cbc748a31e9181dad575ab22bd7e41650120c8442"
+    }
+  }
+}
